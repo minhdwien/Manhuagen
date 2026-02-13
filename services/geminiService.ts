@@ -138,7 +138,8 @@ export const generateManhuaImage = async (
       const parts = candidates[0].content.parts;
       for (const part of parts) {
         if (part.inlineData && part.inlineData.data) {
-          return `data:image/jpeg;base64,${part.inlineData.data}`;
+          const mimeType = part.inlineData.mimeType || 'image/jpeg';
+          return `data:${mimeType};base64,${part.inlineData.data}`;
         }
       }
     }
