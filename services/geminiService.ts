@@ -68,8 +68,15 @@ export const generateManhuaImage = async (
   aspectRatio: AspectRatio = AspectRatio.PORTRAIT,
   retryCount: number = 0
 ): Promise<string> => {
+  
+  // CRITICAL CHECK: Ensure API Key exists before attempting to use the SDK
+  const apiKey = process.env.API_KEY;
+  if (!apiKey || apiKey === '') {
+    throw new Error("Lỗi API Key: Chưa tìm thấy cấu hình. Hãy vào Vercel > Settings > Environment Variables, kiểm tra API_KEY và nhớ chọn REDEPLOY (Triển khai lại) để cập nhật.");
+  }
+
   const MAX_RETRIES = 2; // Try 2 more times if failed (Total 3 attempts)
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: apiKey });
   
   // Base style prompt
   const stylePrompt = "Art Style: Manhua, high quality comic art, vibrant colors, detailed lineart, anime aesthetic, masterpiece, 8k resolution.";
