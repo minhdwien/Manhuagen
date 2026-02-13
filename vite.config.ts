@@ -7,9 +7,12 @@ export default defineConfig(({ mode }) => {
   // Fix: Property 'cwd' does not exist on type 'Process'. Using (process as any).cwd() to resolve.
   const env = loadEnv(mode, (process as any).cwd(), '');
   
-  // Prioritize system env (Vercel) -> .env file
-  // This ensures that if defined in Vercel Settings, it takes precedence.
-  const apiKey = process.env.API_KEY || env.API_KEY;
+  // CRITICAL FIX: The screenshot shows the user defined 'api_key' (lowercase) in Vercel.
+  // We must check for both 'API_KEY' and 'api_key' to ensure the key is picked up regardless of casing.
+  const rawApiKey = process.env.API_KEY || process.env.api_key || env.API_KEY || env.api_key || '';
+  
+  // Trim whitespace just in case of copy-paste errors
+  const apiKey = rawApiKey.trim();
 
   return {
     plugins: [react()],
@@ -17,7 +20,7 @@ export default defineConfig(({ mode }) => {
       // Inject the key as a string literal. 
       // If missing, inject an empty string so the code doesn't crash on ReferenceError at runtime, 
       // allowing our service code to catch it and show a helpful message.
-      'process.env.API_KEY': JSON.stringify(apiKey || '')
+      'process.env.API_KEY': JSON.stringify(apiKey)
     },
     build: {
       outDir: 'dist',

@@ -126,6 +126,11 @@ const App = () => {
     localStorage.setItem('manhua_chars', JSON.stringify(characters));
   }, [characters]);
 
+  // Clear error when changing routes
+  useEffect(() => {
+    setError(null);
+  }, [route]);
+
   const handleCreateNewChar = () => {
     setEditingChar({ ...defaultCharacter, id: Date.now().toString() });
     setRoute(AppRoute.CHARACTER_EDIT);
@@ -167,13 +172,15 @@ const App = () => {
   };
 
   const handleGeneratePreview = async () => {
+      setError(null); // Clear previous errors
       setIsGenerating(true);
       try {
           // Changed: Pass the full character object to ensure all fields (hair, clothing, etc.) are used in generation
           const preview = await generateCharacterPreview(editingChar);
           setEditingChar(prev => ({...prev, imageBase64: preview}));
       } catch (e: any) {
-          alert("Lỗi tạo bản xem trước: " + e.message);
+          // Show error in UI instead of alert
+          setError(e.message || "Lỗi tạo bản xem trước");
       } finally {
           setIsGenerating(false);
       }
@@ -258,7 +265,7 @@ const App = () => {
       </Button>
 
       {/* Result */}
-      {error && <div className="p-4 bg-red-900/30 border border-red-900/50 text-red-200 rounded-lg text-sm flex items-center gap-2"><span className="text-xl">⚠️</span> {error}</div>}
+      {error && <div className="p-4 bg-red-900/30 border border-red-900/50 text-red-200 rounded-lg text-sm flex items-center gap-2 animate-bounce-short"><span className="text-xl">⚠️</span> {error}</div>}
       
       {generatedImage && (
         <div className="mt-6 space-y-3 animate-fade-in">
@@ -338,6 +345,13 @@ const App = () => {
         </Button>
         <h2 className="text-xl font-bold">{editingChar.id && characters.find(c => c.id === editingChar.id) ? 'Sửa Nhân Vật' : 'Tạo Nhân Vật Mới'}</h2>
       </div>
+      
+      {/* Error Display in Edit Mode */}
+      {error && <div className="p-3 bg-red-900/30 border border-red-800 rounded-lg text-red-200 text-sm flex items-start gap-2 animate-bounce-short">
+         <span className="mt-0.5">⚠️</span> 
+         <span className="flex-1">{error}</span>
+         <button onClick={() => setError(null)} className="opacity-50 hover:opacity-100">✕</button>
+      </div>}
 
       <div className="flex gap-4">
         <div className="w-1/3 flex flex-col gap-2">
@@ -465,7 +479,7 @@ const App = () => {
       </div>
       
       <div className="text-center text-xs text-gray-600 mt-8">
-        Manhua Studio AI v1.4.0
+        Manhua Studio AI v1.4.1
       </div>
     </div>
   );

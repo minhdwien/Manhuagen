@@ -72,7 +72,7 @@ export const generateManhuaImage = async (
   // CRITICAL CHECK: Ensure API Key exists before attempting to use the SDK
   const apiKey = process.env.API_KEY;
   if (!apiKey || apiKey === '') {
-    throw new Error("Lỗi API Key: Chưa tìm thấy cấu hình. Hãy vào Vercel > Settings > Environment Variables, kiểm tra API_KEY và nhớ chọn REDEPLOY (Triển khai lại) để cập nhật.");
+    throw new Error("Lỗi API Key: Hệ thống chưa nhận được Key. Hãy đảm bảo bạn đã đặt tên biến là 'API_KEY' (hoặc 'api_key') trong Vercel và đã Redeploy.");
   }
 
   const MAX_RETRIES = 2; // Try 2 more times if failed (Total 3 attempts)
@@ -163,25 +163,32 @@ export const generateManhuaImage = async (
   } catch (error: any) {
     console.error("Gemini API Error:", error);
 
-    // Detect "False Positive" Exhaustion or Rate Limits (429)
+    // 1. Check for 403 Forbidden / Invalid Key
+    if (error.message?.includes("403") || error.message?.includes("API key not valid")) {
+       throw new Error("API Key không hợp lệ. Vui lòng kiểm tra lại Key trong Vercel Settings.");
+    }
+
+    // 2. Check for 429 Resource Exhausted / Quota
     const isResourceExhausted = 
       error.message?.includes("429") || 
-      error.message?.includes("Resource has been exhausted") ||
+      error.message?.includes("exhausted") ||
       error.message?.includes("quota");
 
     if (isResourceExhausted) {
       if (retryCount < MAX_RETRIES) {
-        // Exponential backoff: Wait 2s, then 4s...
-        const waitTime = Math.pow(2, retryCount + 1) * 1000;
-        console.warn(`Resource busy. Retrying in ${waitTime}ms...`);
+        // Exponential backoff: Wait 2.5s, then 5s...
+        const waitTime = Math.pow(2.5, retryCount + 1) * 1000;
+        console.warn(`Resource busy (429). Retrying in ${waitTime}ms...`);
         await delay(waitTime);
         return generateManhuaImage(prompt, matchedCharacters, modelId, aspectRatio, retryCount + 1);
       } else {
-        throw new Error("API_EXHAUSTED"); // Signal UI to suggest switching models
+        // Friendly user message
+        throw new Error("Server Google đang quá tải hoặc bạn đã hết lượt miễn phí (429). Vui lòng đợi 1 phút rồi thử lại.");
       }
     }
     
-    throw error;
+    // 3. Generic Error
+    throw new Error(error.message || "Lỗi kết nối AI không xác định.");
   }
 };
 
