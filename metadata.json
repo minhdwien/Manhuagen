@@ -1,0 +1,5 @@
+{
+  "name": "ManhuaGen AI",
+  "description": "Ứng dụng tạo truyện tranh phong cách Manhua sử dụng Gemini 2.5 Flash với quản lý nhân vật và tối ưu hóa API.",
+  "requestFramePermissions": []
+}
