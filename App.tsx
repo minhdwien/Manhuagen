@@ -169,7 +169,8 @@ const App = () => {
   const handleGeneratePreview = async () => {
       setIsGenerating(true);
       try {
-          const preview = await generateCharacterPreview(editingChar.description, editingChar.measurements, editingChar.gender);
+          // Changed: Pass the full character object to ensure all fields (hair, clothing, etc.) are used in generation
+          const preview = await generateCharacterPreview(editingChar);
           setEditingChar(prev => ({...prev, imageBase64: preview}));
       } catch (e: any) {
           alert("Lỗi tạo bản xem trước: " + e.message);

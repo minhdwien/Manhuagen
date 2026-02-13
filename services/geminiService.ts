@@ -107,8 +107,6 @@ export const generateManhuaImage = async (
   }
 
   // Push the full text prompt as the LAST part (conventionally good practice, though order matters less with Gemini 1.5/2.0)
-  // Actually, let's keep text separate or just push it. 
-  // For Gemini API, parts is an array of {text: string} | {inlineData: ...}.
   parts.push({ text: fullPrompt });
 
   try {
@@ -174,14 +172,10 @@ export const generateManhuaImage = async (
 };
 
 export const generateCharacterPreview = async (
-  description: string,
-  measurements: CharacterMeasurements,
-  gender: string
+  character: Character
 ): Promise<string> => {
-    // Basic mock character for preview generation
-    // Note: description here is actually a concatenation of all attributes passed from UI
-    const charObjMock = { measurements, name: "New Character", description, gender: gender as any } as Character;
-    const bodyPrompt = buildCharacterPromptBlock(charObjMock, 0);
+    // Use the passed character object directly so all fields (hair, age, etc.) are included in the prompt
+    const bodyPrompt = buildCharacterPromptBlock(character, 0);
 
     // Prompt engineered to create a Character Sheet (Reference Image)
     const prompt = `Create a detailed Character Reference Sheet (Character Design) for a Manhua character.
@@ -199,6 +193,6 @@ export const generateCharacterPreview = async (
     - Focus on capturing the 'Personality/Vibe' described.
     `;
 
-    // Always use Flash for previews to save resources, use SQUARE for character sheets to get better width
+    // Always use Flash for previews to save resources
     return generateManhuaImage(prompt, [], 'gemini-2.5-flash-image', AspectRatio.PORTRAIT);
 };
