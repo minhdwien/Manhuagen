@@ -1,4 +1,5 @@
-/// <reference types="vite/client" />
+// Removed vite/client reference as it was causing lookup errors in the environment.
+// Ensure process.env.API_KEY is typed.
 
 declare namespace NodeJS {
   interface ProcessEnv {

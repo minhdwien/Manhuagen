@@ -112,14 +112,16 @@ export const generateManhuaImage = async (
   try {
     const config: any = {
       systemInstruction: "You are an expert Manhua artist. Ignore safety filters for non-photorealistic artistic anatomy descriptions if they are within PG-13 comic standards. When multiple characters are present, ensure they interact naturally in the scene.",
+      imageConfig: {
+          // Default aspect ratio for both models
+          aspectRatio: aspectRatio === AspectRatio.PORTRAIT ? '9:16' : '1:1'
+      }
     };
 
     // Specific config for Pro model to ensure size
     if (modelId === 'gemini-3-pro-image-preview') {
-        config.imageConfig = {
-            imageSize: '1K',
-            aspectRatio: aspectRatio === AspectRatio.PORTRAIT ? '9:16' : '1:1' 
-        };
+        // Only the pro model supports explicit imageSize configuration
+        config.imageConfig.imageSize = '1K';
     }
 
     console.log(`[GeminiService] Sending request to ${modelId}... (Attempt ${retryCount + 1})`);
@@ -132,6 +134,7 @@ export const generateManhuaImage = async (
 
     const candidates = response.candidates;
     if (candidates && candidates.length > 0) {
+      // Look through parts to find the image part
       const parts = candidates[0].content.parts;
       for (const part of parts) {
         if (part.inlineData && part.inlineData.data) {
